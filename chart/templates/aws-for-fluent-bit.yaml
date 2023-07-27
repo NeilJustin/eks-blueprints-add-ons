@@ -25,7 +25,7 @@ spec:
                 auto_kubernetes_labels    off
           extraInputs: |
             [INPUT]
-                Mem_Buf_Limit               50MB
+                memBufLimit               50MB
       parameters:
       - name: aws-for-fluent-bit.cloudWatch.region
         value: {{ .Values.region }}
