@@ -23,6 +23,9 @@ spec:
                 host                      loki-distributed-distributor.grafana.svc.cluster.local
                 labels                    job=fluentbit,$stream,$kubernetes['pod_name'],$kubernetes['namespace_name'],$kubernetes['container_name'],$kubernetes['host']
                 auto_kubernetes_labels    off
+          extraInputs: |
+            [INPUT]
+                memBufLimit               50MB
       parameters:
       - name: aws-for-fluent-bit.cloudWatch.region
         value: {{ .Values.region }}
