@@ -17,7 +17,6 @@ spec:
         aws-for-fluent-bit:
         {{- toYaml .Values.awsForFluentBit | nindent 10 }}
           extraInputs: |
-            [INPUT]
                 memBufLimit               50MB
       parameters:
       - name: aws-for-fluent-bit.cloudWatch.region
