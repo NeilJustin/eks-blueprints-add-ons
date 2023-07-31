@@ -40,6 +40,7 @@ awsForFluentBit:
   logGroupName:
   serviceAccountName:
   memBufLimit: "50MB"
+  Mem_Buf_Limit: "50MB"
 
 # AWS Load Balancer Controller Values
 awsLoadBalancerController:
