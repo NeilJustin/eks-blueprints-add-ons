@@ -24,8 +24,13 @@ spec:
           Refresh_Interval:               20
           
           extraInputs: |
-            dummy: true
+            dummy:                        true
 
+          additionalInputs: |
+            [INPUT]
+                Name   dummy
+                Tag    dummy.log
+                
           additionalOutputs: |
             [OUTPUT]
                 name                      loki
