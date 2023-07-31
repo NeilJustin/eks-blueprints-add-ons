@@ -16,20 +16,20 @@ spec:
       values: |
         aws-for-fluent-bit:
         {{- toYaml .Values.awsForFluentBit | nindent 10 }}
-          input.memBufLimit:              "10MB"
-          input.Mem_Buf_Limit:            "10MB"
-          input.refreshInterval:          20
-          refreshInterval:                20
-          input.Refresh_Interval:         20
-          Refresh_Interval:               20
+              input.memBufLimit:              "10MB"
+              input.Mem_Buf_Limit:            "10MB"
+              input.refreshInterval:          20
+              refreshInterval:                20
+              input.Refresh_Interval:         20
+              Refresh_Interval:               20
           
-          extraInputs: |
-            dummy                         true
-
           additionalInputs: |
             [INPUT]
                 Name   dummy
                 Tag    dummy.log
+                extraInputs: |
+                    dummy                         true
+
 
           additionalOutputs: |
             [OUTPUT]
