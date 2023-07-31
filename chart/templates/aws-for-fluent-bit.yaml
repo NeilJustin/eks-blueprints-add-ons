@@ -17,7 +17,6 @@ spec:
         aws-for-fluent-bit:
         {{- toYaml .Values.awsForFluentBit | nindent 10 }}
           input: |
-            memBufLimit               10MB
             Mem_Buf_Limit             10MB
 
           additionalOutputs: |
