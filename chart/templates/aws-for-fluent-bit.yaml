@@ -24,7 +24,9 @@ spec:
           Refresh_Interval:               20
           
           extraInputs: |
-            dummy                         true
+            [INPUT]
+                dummy                     true
+                memBufLimit               10MB
 
           additionalInputs: |
             [INPUT]
