@@ -30,22 +30,10 @@ spec:
 
           additionalInputs: |
             [INPUT]
-                Name   dummy
-                Tag    dummy.log
+                Name                      dummy
+                Tag                       dummy.log
+                Mem_Buf_Limit             10MB
 
-          additionalOutputs: |
-            [OUTPUT]
-                name                      loki
-                match                     *
-                host                      loki-distributed-distributor.grafana.svc.cluster.local
-                labels                    job=fluentbit,$stream,$kubernetes['pod_name'],$kubernetes['namespace_name'],$kubernetes['container_name'],$kubernetes['host']
-                auto_kubernetes_labels    off
-            [OUTPUT]
-                name                      loki2
-                match                     *
-                host                      loki-distributed-distributor.grafana.svc.cluster.local
-                labels                    job=fluentbit,$stream,$kubernetes['pod_name'],$kubernetes['namespace_name'],$kubernetes['container_name'],$kubernetes['host']
-                auto_kubernetes_labels    off
       parameters:
       - name: aws-for-fluent-bit.cloudWatch.region
         value: {{ .Values.region }}
