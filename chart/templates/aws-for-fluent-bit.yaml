@@ -42,7 +42,7 @@ spec:
             skipLongLines: "On"
             refreshInterval: 10
 
-          additionalFilters: |
+          additionalInputs: |
             [INPUT]
                 Name dummy
                 Dummy {"log":"{\"msg\":\"KafkaError{code=_RESOLVE,val=-193,str=\\\"ssl://kafka.vpc.algodx.io:9094/bootstrap: Failed to resolve 'kafka.vpc.algodx.io:9094': Name or service not known (after 11ms in state CONNECT, 15 identical error(s) suppressed)\\\"}\",\"event\":\"kafka error\",\"timestamp\":\"2023-09-04T04:08:17.032716Z\",\"level\":\"error\",\"filename\":\"main.py\",\"lineno\":60,\"func_name\":\"kafka_error_cb\"}"}
