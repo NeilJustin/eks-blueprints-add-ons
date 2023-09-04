@@ -32,28 +32,66 @@ spec:
         aws-for-fluent-bit:
         {{- toYaml .Values.awsForFluentBit | nindent 10 }}
           input:
-            enabled: true
+            enabled: false
             tag: "kube.*"
-            path: "/var/log/containers/dummy-app-postgres-ping*.log,/var/log/containers/fhir-data-generator*.log,/var/log/containers/fhir-ingestor-wrangler-svc*.log,/var/log/containers/fhir-push-ingestor-svc*.log,/var/log/containers/navoy-sepsis-predictor-svc*.log,/var/log/containers/node-debugger-ip-10-101-1-123.eu-north-1.compute*.log,/var/log/containers/observation-aggregation-svc*.log,/var/log/containers/patient-info-svc*.log,/var/log/containers/raw-data-s3-writer-svc*.log,/var/log/containers/sample-app*.log,/var/log/containers/sepsis-prediction-runner-svc*.log,"
+            path: "/var/log/containers/fhir-push-ingestor-svc*.log"
             db: "/var/log/flb_kube.db"
             parser: docker
             dockerMode: "On"
-            memBufLimit: 50MB
+            memBufLimit: 20MB
             skipLongLines: "On"
             refreshInterval: 10
+
+          additionalFilters: |
+            [INPUT]
+                Name dummy
+                Dummy {"log":"{\"msg\":\"KafkaError{code=_RESOLVE,val=-193,str=\\\"ssl://kafka.vpc.algodx.io:9094/bootstrap: Failed to resolve 'kafka.vpc.algodx.io:9094': Name or service not known (after 11ms in state CONNECT, 15 identical error(s) suppressed)\\\"}\",\"event\":\"kafka error\",\"timestamp\":\"2023-09-04T04:08:17.032716Z\",\"level\":\"error\",\"filename\":\"main.py\",\"lineno\":60,\"func_name\":\"kafka_error_cb\"}"}
+
+        
+          filter:
+            enabled: true
+            match: "kube.*"
+            kubeURL: "https://kubernetes.default.svc.cluster.local:443"
+            mergeLog: "On"
+            mergeLogKey: "data"
+            keepLog: "On"
+            k8sLoggingParser: "On"
+            k8sLoggingExclude: "On"
+            bufferSize: "32k"
+
+          additionalFilters: |
+            [FILTER]
+                Name parser
+                Match *
+                Key_Name log
+                Parser json
+                Reserve_Data On
+                
+            [FILTER]
+                Name parser
+                Match *
+                Key_Name log
+                Parser cri
+                Reserve_Data On
+
+            [FILTER]
+                Name parser
+                Match *
+                Key_Name message
+                Parser json
+                Reserve_Data On
+
+
           additionalOutputs: |
             [OUTPUT]
-                name                      loki
-                match                     *
-                host                      loki-distributed-distributor.grafana.svc.cluster.local
-                labels                    job=fluentbit,$stream,$kubernetes['pod_name'],$kubernetes['namespace_name'],$kubernetes['container_name'],$kubernetes['host']
-                auto_kubernetes_labels    off
+                Name stdout
+                Match *
           resources:
             limits:
               cpu: 500m
               memory: 250M
             requests:
-              cpu: 50m
+              cpu: 20m
               memory: 100M
 
       parameters:
