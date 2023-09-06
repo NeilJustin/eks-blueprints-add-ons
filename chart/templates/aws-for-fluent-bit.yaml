@@ -31,6 +31,14 @@ spec:
       values: |
         aws-for-fluent-bit:
         {{- toYaml .Values.awsForFluentBit | nindent 10 }}
+          service:
+            parsersFiles:
+              - /fluent-bit/parsers/parsers.conf
+            extraParsers: |
+              [PARSER]
+                  Name   logfmt
+                  Format logfmt
+
           input:
             enabled: false
             tag: "kube.*"
