@@ -31,6 +31,14 @@ spec:
       values: |
         aws-for-fluent-bit:
         {{- toYaml .Values.awsForFluentBit | nindent 10 }}
+          filters.lua: |
+            function append_tag(tag, timestamp, record) 
+                new_record = record 
+                log_record = new_record["test"]
+                new_record["log"] = "tag"
+                return 2, timestamp, new_record 
+            end
+
           service:
             parsersFiles:
               - /fluent-bit/parsers/parsers.conf
@@ -39,6 +47,16 @@ spec:
                   Name   logfmt
                   Format logfmt
 
+              [PARSER]
+                  Name   logfmt_strict
+                  Format logfmt
+                  Logfmt_No_Bare_Keys true
+
+              [PARSER]
+                  Name   obs_aggr
+                  Format regex
+                  Regex  ^(?<title>[^:]*): (?:[^']*')(?<type>[^']*)(?:[^ ]*) (?:[^']*')(?<ingestion_id>[^']*)(?:[^=]*=)(?<ingested_at>[^\)]*\)) (?:[^']*')(?<tenant_id>[^']*)(?:'[^']*')(?<hospital_id>[^']*)(?:[^=]*=')(?<action>[^']*)(?:' [^']*')(?<external_patient_id>[^']*)(?:'[^']*')(?<external_encounter_id>[^']*)(?:'[^']*')(?<external_resource_id>[^']*)(?:'[^']*')(?<loinc>[^']*)(?:'[^=]*=)(?<parameter_id>[^ ]*)(?:[^=]*=)(?<value>[^ ]*)(?:[^']*')(?<unit>[^']*)(?:[^=]*=)(?<observed_at>[^\)]*\))(?:[^=]*=)(?<issued_at>[^\)]*\))
+          
           input:
             enabled: false
             tag: "kube.*"
@@ -87,6 +105,20 @@ spec:
                 Match *
                 Key_Name message
                 Parser json
+                Reserve_Data On
+
+            [FILTER]
+                Name parser
+                Match *
+                Key_Name log
+                Parser obs_aggr
+                Reserve_Data On
+
+            [FILTER]
+                Name parser
+                Match *
+                Key_Name log
+                Parser logfmt_strict
                 Reserve_Data On
 
 
