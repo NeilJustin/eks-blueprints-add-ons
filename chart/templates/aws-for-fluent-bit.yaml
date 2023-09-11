@@ -31,13 +31,14 @@ spec:
       values: |
         aws-for-fluent-bit:
         {{- toYaml .Values.awsForFluentBit | nindent 10 }}
-          filters.lua: |
-            function append_tag(tag, timestamp, record) 
-                new_record = record 
-                log_record = new_record["test"]
-                new_record["log"] = "tag"
-                return 2, timestamp, new_record 
-            end
+          luaScripts:
+            filters_log.lua: |
+              function append_tag(tag, timestamp, record) 
+                  new_record = record 
+                  log_record = new_record["test"]
+                  new_record["log"] = "tag"
+                  return 2, timestamp, new_record 
+                end
 
           service:
             parsersFiles:
@@ -113,6 +114,12 @@ spec:
                 Key_Name log
                 Parser obs_aggr
                 Reserve_Data On
+
+              [FILTER]
+                Name lua
+                Match *
+                Script              /fluent-bit/scripts/filters_log.lua
+                Call                append_tag
 
             [FILTER]
                 Name parser
