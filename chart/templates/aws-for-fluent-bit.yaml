@@ -31,15 +31,6 @@ spec:
       values: |
         aws-for-fluent-bit:
         {{- toYaml .Values.awsForFluentBit | nindent 10 }}
-          luaScripts:
-            filters_log.lua: |
-              function append_tag(tag, timestamp, record) 
-                  new_record = record 
-                  log_record = new_record["test"]
-                  new_record["log"] = "tag"
-                  return 2, timestamp, new_record 
-                end
-
           service:
             parsersFiles:
               - /fluent-bit/parsers/parsers.conf
@@ -56,10 +47,45 @@ spec:
               [PARSER]
                   Name   obs_aggr
                   Format regex
-                  Regex  ^(?<title>[^:]*): (?:[^']*')(?<type>[^']*)(?:[^ ]*) (?:[^']*')(?<ingestion_id>[^']*)(?:[^=]*=)(?<ingested_at>[^\)]*\)) (?:[^']*')(?<tenant_id>[^']*)(?:'[^']*')(?<hospital_id>[^']*)(?:[^=]*=')(?<action>[^']*)(?:' [^']*')(?<external_patient_id>[^']*)(?:'[^']*')(?<external_encounter_id>[^']*)(?:'[^']*')(?<external_resource_id>[^']*)(?:'[^']*')(?<loinc>[^']*)(?:'[^=]*=)(?<parameter_id>[^ ]*)(?:[^=]*=)(?<value>[^ ]*)(?:[^']*')(?<unit>[^']*)(?:[^=]*=)(?<observed_at>[^\)]*\))(?:[^=]*=)(?<issued_at>[^\)]*\))
-          
+                  Regex  (?:\s*(?<hospital_id>hospital_\d+)|(?:action='(?<action>[A-Z]+)')\s*)+
+
+              [PARSER]
+                  Name   ebs_csi
+                  Format regex
+                  Regex  (?<log_level_code>[IWE]{1}\d{4})\s(?<t>[^ ]+)(?:\s{2,})(?<msg>.*)
+
+              [PARSER]
+                  Name   brckt
+                  Format regex
+                  Regex  (\[(?<t>[^\]]+)\])(\s*\[\s*(?<level>[^\]]+)\])(\s*\[\s*(?<component>[^\]]+)\])\s*(?<msg>.*)
+
+              [PARSER]
+                  Name   aws_cloudwatch
+                  Format regex
+                  Regex  (?<t>[^\s]+)\s(?<log_level_code>\w!)\s(\[(?<component>.*)\])?(?<msg>.*)
+
+              [PARSER]
+                  Name   strimzi
+                  Format regex
+                  Regex  ((?<date>\d{4}-\d{2}-\d{2})\s(?<t>[\d:]+))\s(?<level>[^\s]+)\s*(?<component>[^\s]+)(?<msg>.*)
+
+              [PARSER]
+                  Name   karpenter
+                  Format regex
+                  Regex  (?<t>.*.\d{3}Z)\t(?<level>\w+)\t(?<component>[^\t]+)\t(?<msg>.*)
+
+              [PARSER]
+                  Name   argo
+                  Format regex
+                  Regex  ^(\[(?<level>.*)])\s*(?<msg>\(\d+\).*)
+
+              [PARSER]
+                  Name   nginx_escaped
+                  Format regex
+                  Regex  ^(?<remote>[^ ]*) (?<host>[^ ]*) (?<user>[^ ]*) \[(?<t>[^\]]*)\] (?:[^"]")(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<code>[^ ]*) (?<size>[^ ]*)((?:\s[^"]"))(?<referer>[^\\"])(?:[^\w]*)(?<agent>[^\\"]*)(?:[^\w\s]*)(?<more_info>.*)
+
           input:
-            enabled: false
+            enabled: true
             tag: "kube.*"
             path: "/var/log/containers/fhir-push-ingestor-svc*.log"
             db: "/var/log/flb_kube.db"
@@ -71,8 +97,16 @@ spec:
 
           additionalInputs: |
             [INPUT]
-                Name dummy
-                Dummy {"log":"{\"msg\":\"KafkaError{code=_RESOLVE,val=-193,str=\\\"ssl://kafka.vpc.algodx.io:9094/bootstrap: Failed to resolve 'kafka.vpc.algodx.io:9094': Name or service not known (after 11ms in state CONNECT, 15 identical error(s) suppressed)\\\"}\",\"event\":\"kafka error\",\"timestamp\":\"2023-09-04T04:08:17.032716Z\",\"level\":\"error\",\"filename\":\"main.py\",\"lineno\":60,\"func_name\":\"kafka_error_cb\"}"}
+                Name tail
+                Tag                 "kube.support.*"
+                Path:               "/var/log/containers/*.log"
+                Exclude_Path        "/var/log/containers/fhir-push-ingestor-svc*.log"
+                DB:                 "/var/log/flb_kube.db"
+                Parser:             docker
+                Docker_Mode:        "On"
+                Mem_Buf_Limit:      20MB
+                Skip_Long_Lines:    "On"
+                Refresh_Interval:   10
 
         
           filter:
@@ -86,47 +120,103 @@ spec:
             k8sLoggingExclude: "On"
             bufferSize: "32k"
 
-          additionalFilters: |
+          additionalFilters: |           
             [FILTER]
                 Name parser
                 Match *
                 Key_Name log
                 Parser json
-                Reserve_Data On
-                
-            [FILTER]
-                Name parser
-                Match *
-                Key_Name log
                 Parser cri
+                Parser argo
+                Parser nginx_escaped
+                Parser nginx
                 Reserve_Data On
+
 
             [FILTER]
                 Name parser
                 Match *
                 Key_Name message
                 Parser json
+                Parser aws_cloudwatch
                 Reserve_Data On
 
             [FILTER]
                 Name parser
                 Match *
                 Key_Name log
+                Parser aws_cloudwatch
                 Parser obs_aggr
+                Parser brckt
                 Reserve_Data On
 
-              [FILTER]
-                Name lua
+
+            [FILTER]
+                Name modify
                 Match *
-                Script              /fluent-bit/scripts/filters_log.lua
-                Call                append_tag
+                Condition Key_value_matches log =
+                Condition Key_value_matches log level
+                Condition Key_value_does_not_match log \u0020\u0020\u0020\u0020\u0020\u0020\u0020
+                Rename log to_format
+
 
             [FILTER]
                 Name parser
                 Match *
-                Key_Name log
+                Key_Name to_format
                 Parser logfmt_strict
                 Reserve_Data On
+
+
+            [FILTER]
+                Name parser
+                Match *
+                Key_Name log
+                Parser ebs_csi
+                Reserve_Data On
+
+
+            [FILTER]
+                Name modify
+                Match *
+                Condition Key_value_matches log_level_code I
+                Add level info
+                Remove log_level_code
+
+
+            [FILTER]
+                Name modify
+                Match *
+                Condition Key_value_matches log_level_code W
+                Add level warning
+                Remove log_level_code
+
+
+            [FILTER]
+                Name modify
+                Match *
+                Condition Key_value_matches log_level_code E
+                Add level error
+                Remove log_level_code
+
+            [FILTER]
+                Name parser
+                Match *
+                Key_Name log
+                Parser strimzi
+                Parser karpenter
+                Reserve_Data On
+
+            [FILTER]
+                Name modify
+                Match *
+                Condition Key_exists log
+                Rename log log_data
+
+            [FILTER]
+                name   grep
+                match  kube.support.*
+                Exclude  level (?i)^((?!error).)*$
 
 
           additionalOutputs: |
