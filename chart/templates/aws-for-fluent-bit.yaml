@@ -119,7 +119,7 @@ spec:
             k8sLoggingParser: "On"
             k8sLoggingExclude: "On"
             bufferSize: "32k"
-            kubeTagPrefix:  kube.main.var.log.containers.
+            kubeTagPrefix:  "kube.main.var.log.containers."
 
           additionalFilters: |       
             [FILTER]
