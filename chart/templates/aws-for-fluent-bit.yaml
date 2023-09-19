@@ -85,15 +85,15 @@ spec:
                   Regex  ^(?<remote>[^ ]*) (?<host>[^ ]*) (?<user>[^ ]*) \[(?<t>[^\]]*)\] (?:[^"]")(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<code>[^ ]*) (?<size>[^ ]*)((?:\s[^"]"))(?<referer>[^\\"])(?:[^\w]*)(?<agent>[^\\"]*)(?:[^\w\s]*)(?<more_info>.*)
 
           input:
-            enabled: true
-            tag: "kube.main*"
-            path: "/var/log/containers/fhir-push-ingestor-svc*.log"
-            db: "/var/log/flb_kube.db"
-            parser: docker
-            dockerMode: "On"
-            memBufLimit: 20MB
-            skipLongLines: "On"
-            refreshInterval: 10
+            enabled:          true
+            tag:              "kube.main*"
+            path:             "/var/log/containers/fhir-push-ingestor-svc*.log"
+            db:               "/var/log/flb_kube.db"
+            parser:           docker
+            dockerMode:       "On"
+            memBufLimit:      20MB
+            skipLongLines:    "On"
+            refreshInterval:  10
 
           additionalInputs: |
             [INPUT]
@@ -110,16 +110,16 @@ spec:
 
         
           filter:
-            enabled: true
-            match: "kube.main*"
-            kubeURL: "https://kubernetes.default.svc.cluster.local:443"
-            mergeLog: "On"
-            mergeLogKey: "data"
-            keepLog: "On"
-            k8sLoggingParser: "On"
-            k8sLoggingExclude: "On"
-            bufferSize: "32k"
-            kubeTagPrefix:  "kube.main.var.log.containers."
+            enabled:            true
+            match:              "kube.main*"
+            kubeURL:            "https://kubernetes.default.svc.cluster.local:443"
+            mergeLog:           "On"
+            mergeLogKey:        "data"
+            keepLog:            "On"
+            k8sLoggingParser:   "On"
+            k8sLoggingExclude:  "On"
+            bufferSize:         "32k"
+            kubeTagPrefix:      "kube.main.var.log.containers."
 
           additionalFilters: |       
             [FILTER]
