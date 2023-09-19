@@ -86,7 +86,7 @@ spec:
 
           input:
             enabled: true
-            tag: "kube.*"
+            tag: "kube.main*"
             path: "/var/log/containers/fhir-push-ingestor-svc*.log"
             db: "/var/log/flb_kube.db"
             parser: docker
@@ -98,20 +98,21 @@ spec:
           additionalInputs: |
             [INPUT]
                 Name                tail
-                Tag                 "kube.support.*"
-                Path:               "/var/log/containers/*.log"
-                Exclude_Path        "/var/log/containers/fhir-push-ingestor-svc*.log"
-                DB:                 "/var/log/flb_kube.db"
-                Parser:             docker
-                Docker_Mode:        "On"
-                Mem_Buf_Limit:      20MB
-                Skip_Long_Lines:    "On"
-                Refresh_Interval:   10
+                Tag                 kube.support*
+                path                /var/log/containers/*.log
+                exclude_path        /var/log/containers/fhir-push-ingestor-svc*.log
+                db                  /var/log/flb_kube_support.db
+                parser              docker
+                docker_mode         On
+                mem_buf_limit       20MB
+                skip_long_lines     On
+                refresh_interval    10
+                kube_tag_prefix     kube.support.var.log.containers.
 
         
           filter:
             enabled: true
-            match: "kube.*"
+            match: "kube.main*"
             kubeURL: "https://kubernetes.default.svc.cluster.local:443"
             mergeLog: "On"
             mergeLogKey: "data"
@@ -119,8 +120,20 @@ spec:
             k8sLoggingParser: "On"
             k8sLoggingExclude: "On"
             bufferSize: "32k"
+            kubeTagPrefix:  kube.main.var.log.containers.
 
-          additionalFilters: |           
+          additionalFilters: |       
+            [FILTER]
+                Name                kubernetes
+                Match               kube.support*
+                Kube_URL            https://kubernetes.default.svc.cluster.local:443
+                Merge_Log           On
+                Merge_Log_Key       data
+                Keep_Log            On
+                K8S-Logging.Parser  On
+                K8S-Logging.Exclude On
+                Kube_Tag_Prefix     kube.support.var.log.containers.
+
             [FILTER]
                 Name parser
                 Match *
@@ -150,6 +163,18 @@ spec:
                 Parser brckt
                 Reserve_Data On
 
+            [FILTER]
+                Name parser
+                Match *
+                Key_Name message
+                Parser aws_cloudwatch
+                Parser obs_aggr
+                Parser brckt
+                Parser argo
+                Parser nginx_escaped
+                Parser nginx
+                Reserve_Data On
+
 
             [FILTER]
                 Name modify
@@ -159,6 +184,14 @@ spec:
                 Condition Key_value_does_not_match log \u0020\u0020\u0020\u0020\u0020\u0020\u0020
                 Rename log to_format
 
+            [FILTER]
+                Name modify
+                Match *
+                Condition Key_value_matches message =
+                Condition Key_value_matches message level
+                Condition Key_value_does_not_match message \u0020\u0020\u0020\u0020\u0020\u0020\u0020
+                Rename message to_format
+
 
             [FILTER]
                 Name parser
@@ -167,6 +200,12 @@ spec:
                 Parser logfmt_strict
                 Reserve_Data On
 
+            [FILTER]
+                Name parser
+                Match *
+                Key_Name message
+                Parser ebs_csi
+                Reserve_Data On
 
             [FILTER]
                 Name parser
@@ -208,6 +247,14 @@ spec:
                 Reserve_Data On
 
             [FILTER]
+                Name parser
+                Match *
+                Key_Name message
+                Parser strimzi
+                Parser karpenter
+                Reserve_Data On
+
+            [FILTER]
                 Name modify
                 Match *
                 Condition Key_exists log
@@ -219,10 +266,10 @@ spec:
                 Exclude  level (?i)^((?!error).)*$
 
 
-          additionalOutputs: |
-            [OUTPUT]
-                Name stdout
-                Match *
+          # additionalOutputs: |
+          #   [OUTPUT]
+          #       Name stdout
+          #       Match *
           resources:
             limits:
               cpu: 500m
