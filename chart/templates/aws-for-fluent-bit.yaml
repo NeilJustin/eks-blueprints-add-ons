@@ -86,7 +86,7 @@ spec:
 
           input:
             enabled:          true
-            tag:              "kube.main*"
+            tag:              "kube.*"
             path:             "/var/log/containers/fhir-push-ingestor-svc*.log"
             db:               "/var/log/flb_kube.db"
             parser:           docker
@@ -111,7 +111,7 @@ spec:
         
           filter:
             enabled:            true
-            match:              "kube.main*"
+            match:              "kube.*"
             kubeURL:            "https://kubernetes.default.svc.cluster.local:443"
             mergeLog:           "On"
             mergeLogKey:        "data"
@@ -119,7 +119,6 @@ spec:
             k8sLoggingParser:   "On"
             k8sLoggingExclude:  "On"
             bufferSize:         "32k"
-            kubeTagPrefix:      "kube.main.var.log.containers."
 
           additionalFilters: |       
             [FILTER]
