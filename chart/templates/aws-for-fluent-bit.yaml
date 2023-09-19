@@ -97,7 +97,7 @@ spec:
 
           additionalInputs: |
             [INPUT]
-                Name tail
+                Name                tail
                 Tag                 "kube.support.*"
                 Path:               "/var/log/containers/*.log"
                 Exclude_Path        "/var/log/containers/fhir-push-ingestor-svc*.log"
