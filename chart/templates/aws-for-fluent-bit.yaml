@@ -263,6 +263,11 @@ spec:
                 match  kube.support.*
                 Exclude  level (?i)^((?!error|alert).)*$
 
+            [FILTER]
+                name   grep
+                match  kube.support.*
+                Exclude  $data['level'] (?i)^((?!error|alert).)*$
+
 
           additionalOutputs: |
             [OUTPUT]
