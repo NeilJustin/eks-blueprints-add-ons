@@ -261,7 +261,7 @@ spec:
             [FILTER]
                 name   grep
                 match  kube.support.*
-                Exclude  level (?i)^((?!error).)*$
+                Exclude  level (?i)^((?!error|alert).)*$
 
 
           # additionalOutputs: |
