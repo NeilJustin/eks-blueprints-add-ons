@@ -1,18 +1,18 @@
 {{- if and (.Values.awsForFluentBit) (.Values.awsForFluentBit.enable) -}}
-#
-# NAME                                                              READY   STATUS             RESTARTS           AGE
-# dummy-app-postgres-ping-5bd88dd9c8-8k7z9                          0/1     CrashLoopBackOff   4324 (3m59s ago)   35d
-# fhir-data-generator-7c4987db49-tfb9k                              1/1     Running            2 (4d14h ago)      5d20h
-# fhir-ingestor-wrangler-svc-84f85bcf6c-sxc9m                       1/1     Running            0                  5d20h
-# fhir-push-ingestor-svc-6b79b7c64d-fgsqt                           1/1     Running            0                  5d20h
-# navoy-sepsis-predictor-svc-5d7d6c86cb-wmq2h                       1/1     Running            0                  33d
-# node-debugger-ip-10-101-1-123.eu-north-1.compute.internal-8shxh   1/1     Running            0                  12d
-# observation-aggregation-svc-695bc5477f-m5wxn                      1/1     Running            0                  23h
-# patient-info-svc-88c878f66-qlwzj                                  1/1     Running            0                  4d
-# raw-data-s3-writer-svc-777f475668-cg9mk                           1/1     Running            0                  33d
-# sample-app-77b7654f5-qvzqm                                        1/1     Running            0                  35d
-# sepsis-prediction-runner-svc-7c55b9b7d9-28wn2                     1/1     Running            1 (12d ago)        13d
-# /var/log/containers/dummy-app-postgres-ping*.log,/var/log/containers/fhir-data-generator*.log,/var/log/containers/fhir-ingestor-wrangler-svc*.log,/var/log/containers/fhir-push-ingestor-svc*.log,/var/log/containers/navoy-sepsis-predictor-svc*.log,/var/log/containers/node-debugger-ip-10-101-1-123.eu-north-1.compute*.log,/var/log/containers/observation-aggregation-svc*.log,/var/log/containers/patient-info-svc*.log,/var/log/containers/raw-data-s3-writer-svc*.log,/var/log/containers/sample-app*.log,/var/log/containers/sepsis-prediction-runner-svc*.log,
+# dummy-app-postgres-ping-5bd88dd9c8-8k7z9                          0/1     CrashLoopBackOff   12424 (69s ago)   64d
+# fhir-data-generator-5777974b77-nz52x                              1/1     Running            3 (3d5h ago)      19d
+# fhir-ingestor-wrangler-svc-7f8bcbd699-fjrzm                       1/1     Running            0                 13h
+# fhir-push-ingestor-svc-867c5d9c87-6fbtw                           1/1     Running            0                 19d
+# navoy-sepsis-predictor-svc-6df4f65bb4-2vhsr                       1/1     Running            0                 19d
+# node-debugger-ip-10-101-1-123.eu-north-1.compute.internal-8shxh   1/1     Running            0                 41d
+# observation-aggregation-svc-96c846d6b-fzb6r                       1/1     Running            0                 14h
+# patient-info-svc-866b9895db-k4rhr                                 1/1     Running            0                 14h
+# raw-data-s3-writer-svc-8568cbf44c-h8srb                           1/1     Running            0                 19d
+# sample-app-77b7654f5-qvzqm                                        1/1     Running            0                 64d
+# sepsis-prediction-runner-svc-7c55b9b7d9-28wn2                     1/1     Running            20 (37h ago)      41d
+
+# "/var/log/containers/dummy-app-postgres-ping*.log,/var/log/containers/fhir-data-generator*.log,/var/log/containers/fhir-ingestor-wrangler-svc*.log,/var/log/containers/fhir-push-ingestor-svc*.log,/var/log/containers/navoy-sepsis-predictor-svc*.log,/var/log/containers/node-debugger*.log,/var/log/containers/observation-aggregation-svc*.log,/var/log/containers/patient-info-svc*.log,/var/log/containers/raw-data-s3-writer-svc*.log,/var/log/containers/sample-app*.log,/var/log/containers/sepsis-prediction-runner-svc*.log"
+
 
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -40,8 +40,8 @@ spec:
                   Format logfmt
 
               [PARSER]
-                  Name   logfmt_strict
-                  Format logfmt
+                  Name                logfmt_strict
+                  Format              logfmt
                   Logfmt_No_Bare_Keys true
 
               [PARSER]
@@ -133,142 +133,140 @@ spec:
                 Kube_Tag_Prefix     kube.support.var.log.containers.
 
             [FILTER]
-                Name parser
-                Match *
-                Key_Name log
-                Parser json
-                Parser cri
-                Parser argo
-                Parser nginx_escaped
-                Parser nginx
-                Reserve_Data On
+                Name          parser
+                Match         *
+                Key_Name      log
+                Parser        json
+                Parser        cri
+                Parser        argo
+                Parser        nginx_escaped
+                Parser        nginx
+                Reserve_Data  On
 
 
             [FILTER]
-                Name parser
-                Match *
-                Key_Name message
-                Parser json
-                Parser aws_cloudwatch
-                Reserve_Data On
+                Name          parser
+                Match         *
+                Key_Name      message
+                Parser        json
+                Parser        aws_cloudwatch
+                Reserve_Data  On
 
             [FILTER]
-                Name parser
-                Match *
-                Key_Name log
-                Parser aws_cloudwatch
-                Parser obs_aggr
-                Parser brckt
-                Reserve_Data On
+                Name          parser
+                Match         *
+                Key_Name      log
+                Parser        aws_cloudwatch
+                Parser        obs_aggr
+                Parser        brckt
+                Reserve_Data  On
 
             [FILTER]
-                Name parser
-                Match *
-                Key_Name message
-                Parser aws_cloudwatch
-                Parser obs_aggr
-                Parser brckt
-                Parser argo
-                Parser nginx_escaped
-                Parser nginx
-                Reserve_Data On
+                Name          parser
+                Match         *
+                Key_Name      message
+                Parser        aws_cloudwatch
+                Parser        obs_aggr
+                Parser        brckt
+                Parser        argo
+                Parser        nginx_escaped
+                Parser        nginx
+                Reserve_Data  On
 
 
             [FILTER]
-                Name modify
-                Match *
+                Name      modify
+                Match     *
                 Condition Key_value_matches log =
                 Condition Key_value_matches log level
                 Condition Key_value_does_not_match log \u0020\u0020\u0020\u0020\u0020\u0020\u0020
-                Rename log to_format
+                Rename    log to_format
 
             [FILTER]
-                Name modify
-                Match *
+                Name      modify
+                Match     *
                 Condition Key_value_matches message =
                 Condition Key_value_matches message level
                 Condition Key_value_does_not_match message \u0020\u0020\u0020\u0020\u0020\u0020\u0020
-                Rename message to_format
+                Rename    message to_format
 
 
             [FILTER]
-                Name parser
-                Match *
-                Key_Name to_format
-                Parser logfmt_strict
-                Reserve_Data On
+                Name          parser
+                Match         *
+                Key_Name      to_format
+                Parser        logfmt_strict
+                Reserve_Data  On
 
             [FILTER]
-                Name parser
-                Match *
-                Key_Name message
-                Parser ebs_csi
-                Reserve_Data On
+                Name          parser
+                Match         *
+                Key_Name      message
+                Parser        ebs_csi
+                Reserve_Data  On
 
             [FILTER]
-                Name parser
-                Match *
-                Key_Name log
-                Parser ebs_csi
-                Reserve_Data On
+                Name          parser
+                Match         *
+                Key_Name      log
+                Parser        ebs_csi
+                Reserve_Data  On
 
 
             [FILTER]
-                Name modify
-                Match *
+                Name      modify
+                Match     *
                 Condition Key_value_matches log_level_code I
-                Add level info
-                Remove log_level_code
+                Add       level info
+                Remove    log_level_code
 
 
             [FILTER]
-                Name modify
-                Match *
+                Name      modify
+                Match     *
                 Condition Key_value_matches log_level_code W
-                Add level warning
-                Remove log_level_code
+                Add       level warning
+                Remove    log_level_code
 
 
             [FILTER]
-                Name modify
-                Match *
+                Name      modify
+                Match     *
                 Condition Key_value_matches log_level_code E
-                Add level error
-                Remove log_level_code
+                Add       level error
+                Remove    log_level_code
 
             [FILTER]
-                Name parser
-                Match *
-                Key_Name log
-                Parser strimzi
-                Parser karpenter
-                Reserve_Data On
+                Name          parser
+                Match         *
+                Key_Name      log
+                Parser        strimzi
+                Parser        karpenter
+                Reserve_Data  On
 
             [FILTER]
-                Name parser
-                Match *
-                Key_Name message
-                Parser strimzi
-                Parser karpenter
-                Reserve_Data On
+                Name          parser
+                Match         *
+                Key_Name      message
+                Parser        strimzi
+                Parser        karpenter
+                Reserve_Data  On
 
             [FILTER]
-                Name modify
-                Match *
+                Name      modify
+                Match     *
                 Condition Key_exists log
-                Rename log log_data
+                Rename    log log_data
 
             [FILTER]
-                name   grep
-                match  kube.support.*
-                Exclude  level (?i)^((?!error|alert).)*$
+                name      grep
+                match     kube.support.*
+                Exclude   level (?i)^((?!error|alert).)*$
 
             [FILTER]
-                name   grep
-                match  kube.support.*
-                Exclude  $data['level'] (?i)^((?!error|alert).)*$
-
-
+                name      grep
+                match     kube.support.*
+                Exclude   $data['level'] (?i)^((?!error|alert).)*$
           additionalOutputs: |
             [OUTPUT]
                 name                      loki
@@ -276,6 +274,7 @@ spec:
                 host                      loki-distributed-distributor.grafana.svc.cluster.local
                 labels                    job=fluentbit,$stream,$kubernetes['pod_name'],$kubernetes['namespace_name'],$kubernetes['container_name'],$kubernetes['host']
                 auto_kubernetes_labels    off
+
           resources:
             limits:
               cpu: 500m
