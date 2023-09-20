@@ -87,7 +87,7 @@ spec:
           input:
             enabled:          true
             tag:              "kube.*"
-            path:             "/var/log/containers/fhir-push-ingestor-svc*.log"
+            path:             "/var/log/containers/dummy-app-postgres-ping*.log,/var/log/containers/fhir-data-generator*.log,/var/log/containers/fhir-ingestor-wrangler-svc*.log,/var/log/containers/fhir-push-ingestor-svc*.log,/var/log/containers/navoy-sepsis-predictor-svc*.log,/var/log/containers/node-debugger*.log,/var/log/containers/observation-aggregation-svc*.log,/var/log/containers/patient-info-svc*.log,/var/log/containers/raw-data-s3-writer-svc*.log,/var/log/containers/sample-app*.log,/var/log/containers/sepsis-prediction-runner-svc*.log"
             db:               "/var/log/flb_kube.db"
             parser:           docker
             dockerMode:       "On"
@@ -100,7 +100,7 @@ spec:
                 Name                tail
                 Tag                 kube.support*
                 path                /var/log/containers/*.log
-                exclude_path        /var/log/containers/fhir-push-ingestor-svc*.log
+                exclude_path        /var/log/containers/dummy-app-postgres-ping*.log,/var/log/containers/fhir-data-generator*.log,/var/log/containers/fhir-ingestor-wrangler-svc*.log,/var/log/containers/fhir-push-ingestor-svc*.log,/var/log/containers/navoy-sepsis-predictor-svc*.log,/var/log/containers/node-debugger*.log,/var/log/containers/observation-aggregation-svc*.log,/var/log/containers/patient-info-svc*.log,/var/log/containers/raw-data-s3-writer-svc*.log,/var/log/containers/sample-app*.log,/var/log/containers/sepsis-prediction-runner-svc*.log
                 db                  /var/log/flb_kube_support.db
                 parser              docker
                 docker_mode         On
